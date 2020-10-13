@@ -14,8 +14,9 @@ yuanshi_shujv = pd.read_table('hld_and_rxd.fzp', encoding = 'gbk')
 
 # 提取有用数据
 shuzhi_shujv_col = yuanshi_shujv.iloc[13:]
-# print(shuzhi_shujv_col)
+print(shuzhi_shujv_col)
 
+'''
 shuzhi_shujv_fenge = pd.DataFrame([jj.split(';') for jj in shuzhi_shujv_col['Vehicle Record']])
 # print(shuzhi_shujv_fenge)
 
@@ -59,4 +60,4 @@ for i in range(shuzhi_shujv_fenge.shape[0]):
 
 print(data_sampled)
 
-
+'''
