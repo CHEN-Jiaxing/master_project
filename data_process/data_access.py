@@ -97,19 +97,7 @@ shuzhi_shujv_veh_nr = shuzhi_shujv_fenge[xuhao_jieduan_kaishi:xuhao_jieduan_jies
 shuzhi_shujv_veh_nr = shuzhi_shujv_veh_nr.reset_index()
 shuzhi_shujv_veh_nr.drop(['index'], axis=1, inplace=True)
 
-'''
-# 类型转换
-shuzhi_shujv_veh_nr['Lane'] = shuzhi_shujv_veh_nr['Lane'].astype(int)
-shuzhi_shujv_veh_nr['    WorldX'] = shuzhi_shujv_veh_nr['    WorldX'].astype(float)
-shuzhi_shujv_veh_nr['    WorldY'] = shuzhi_shujv_veh_nr['    WorldY'].astype(float)
-shuzhi_shujv_veh_nr['     a'] = shuzhi_shujv_veh_nr['     a'].astype(float)
-shuzhi_shujv_veh_nr['     VehNr'] = shuzhi_shujv_veh_nr['     VehNr'].astype(int)
-shuzhi_shujv_veh_nr['       t'] = shuzhi_shujv_veh_nr['       t'].astype(float)
-shuzhi_shujv_veh_nr['    vMS'] = shuzhi_shujv_veh_nr['    vMS'].astype(float)
-shuzhi_shujv_veh_nr[' Power'] = shuzhi_shujv_veh_nr[' Power'].astype(float)
-shuzhi_shujv_veh_nr['  LVeh'] = shuzhi_shujv_veh_nr['  LVeh'].astype(int)
-shuzhi_shujv_veh_nr['  Head'] = shuzhi_shujv_veh_nr['  Head'].astype(float)
-'''
+
 shujv_veh_lst = [] 
 
 for i in range(shuzhi_shujv_veh_nr.shape[0]):
