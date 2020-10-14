@@ -41,7 +41,7 @@ shuzhi_shujv_fenge = shuzhi_shujv_fenge.drop([' '], axis =1)
 
 # print(shuzhi_shujv_fenge)
 
-'''
+
 # 提取队列信息测试
 temp = shuzhi_shujv_fenge.iloc[0:25]
 print(temp)
@@ -74,9 +74,8 @@ for i in range(temp.shape[0]):
             temp_dict.append(tt_dict)
 
 print(temp_dict)
-'''
 
-'''
+
 # 1号车的信息
 v1_all_list = []
 v1_t_list = []
@@ -120,9 +119,9 @@ plt.plot(v1_t_np, v1_v_np, 'b')
 plt.plot(v2_t_np, v2_v_np, 'r')
 plt.plot(v3_t_np, v3_v_np, 'g')
 plt.show()
-'''
 
-'''
+
+
 data_sampled = []
 
 # ！！！需要修改的起始时间
@@ -140,36 +139,43 @@ for i in range(shuzhi_shujv_fenge.shape[0]):
         
 
 print(data_sampled)
-'''
 
 
-'''
+
+
 
 # ！！！需要更改的 VehNr 值
 
-veh_nr = 1
+veh_nr_1 = 1
+veh_nr_2 = 1
+veh_nr_3 = 1
 time_jieduan_kaishi = 0
 time_jieduan_jieshu = 0
 
 # 获取截取片段 的 开始时刻
 for i in range(shuzhi_shujv_fenge.shape[0]):
-    if(shuzhi_shujv_fenge.iloc[i][8] == veh_nr):
+    if(shuzhi_shujv_fenge.iloc[i][8] == veh_nr_1):
+        veh_nr_2 = int(shuzhi_shujv_fenge.iloc[i][4])
         break
 for j in range(i,shuzhi_shujv_fenge.shape[0]):
-    if(shuzhi_shujv_fenge.iloc[j][8] == shuzhi_shujv_fenge.iloc[i][4]):
+    if(shuzhi_shujv_fenge.iloc[j][8] == veh_nr_2):
+        veh_nr_3 = int(shuzhi_shujv_fenge.iloc[j][4])
         time_jieduan_kaishi = shuzhi_shujv_fenge.iloc[j][5]
         time_jieduan_jieshu = shuzhi_shujv_fenge.iloc[j][5]
         break
 
+# print(veh_nr_2)
+# print(veh_nr_3)
+
 # 获取截取片段 的 结束时刻
 for k in range(j,shuzhi_shujv_fenge.shape[0]):
-    if(shuzhi_shujv_fenge.iloc[k][4] == veh_nr):
+    if(shuzhi_shujv_fenge.iloc[k][4] == veh_nr_1):
         time_jieduan_jieshu = shuzhi_shujv_fenge.iloc[k][5]
     if(shuzhi_shujv_fenge.iloc[k][5] - time_jieduan_jieshu > 1):
         break
 
-print(time_jieduan_kaishi)
-print(time_jieduan_jieshu)
+# print(time_jieduan_kaishi)
+# print(time_jieduan_jieshu)
 
 xuhao_jieduan_kaishi = 0
 xuhao_jieduan_jieshu = 0
@@ -186,8 +192,24 @@ for i in range(shuzhi_shujv_fenge.shape[0]):
      xuhao_jieduan_jieshu = i - 1
      break
 
-print(xuhao_jieduan_kaishi)
-print(xuhao_jieduan_jieshu)
+# print(xuhao_jieduan_kaishi)
+# print(xuhao_jieduan_jieshu)
 
-'''
+# 提取包含当前队列的信息
+shuzhi_shujv_veh_nr = shuzhi_shujv_fenge[xuhao_jieduan_kaishi:xuhao_jieduan_jieshu+1]
+shuzhi_shujv_veh_nr = shuzhi_shujv_veh_nr.reset_index()
+shuzhi_shujv_veh_nr.drop(['index'], axis=1, inplace=True)
+
+
+shujv_veh_lst = [] 
+
+for i in range(shuzhi_shujv_veh_nr.shape[0]):
+    if(shuzhi_shujv_veh_nr.iloc[i][4] == veh_nr_1 or\
+       shuzhi_shujv_veh_nr.iloc[i][4] == veh_nr_2 or\
+       shuzhi_shujv_veh_nr.iloc[i][4] == veh_nr_3):
+        shujv_veh_lst.append(list(shuzhi_shujv_veh_nr.iloc[i]))
+
+shujv_veh_np = np.array(shujv_veh_lst)
+print(shujv_veh_np)
+print(shujv_veh_np.shape)
         
