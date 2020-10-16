@@ -41,6 +41,7 @@ shuzhi_shujv_fenge = shuzhi_shujv_fenge.drop([' '], axis =1)
 
 # print(shuzhi_shujv_fenge)
 
+'''
 
 # 提取队列信息测试
 temp = shuzhi_shujv_fenge.iloc[0:25]
@@ -75,7 +76,9 @@ for i in range(temp.shape[0]):
 
 print(temp_dict)
 
+'''
 
+'''
 # 1号车的信息
 v1_all_list = []
 v1_t_list = []
@@ -120,7 +123,9 @@ plt.plot(v2_t_np, v2_v_np, 'r')
 plt.plot(v3_t_np, v3_v_np, 'g')
 plt.show()
 
+'''
 
+'''
 
 data_sampled = []
 
@@ -140,9 +145,9 @@ for i in range(shuzhi_shujv_fenge.shape[0]):
 
 print(data_sampled)
 
+'''
 
-
-
+'''
 
 # ！！！需要更改的 VehNr 值
 
@@ -213,3 +218,44 @@ shujv_veh_np = np.array(shujv_veh_lst)
 print(shujv_veh_np)
 print(shujv_veh_np.shape)
         
+'''
+
+'''
+
+duilie_list = []
+
+# 分别对1，2，3号车提取信息
+for i_hang in range(shujv_hangshu):
+    if(i_hang %3 != 0):
+        continue
+    
+    info_veh_nr_1 = []
+    info_veh_nr_2 = []
+    info_veh_nr_3 = []
+    for i in range(i_hang, i_hang + 3):
+        if(shujv_veh_np[i][4] == veh_nr_1):
+            if(shujv_veh_np[i][1] < 2700):
+                info_veh_nr_1.append(float(2700 - shujv_veh_np[i][1]))
+            elif(shujv_veh_np[i][1] < 3100):
+                info_veh_nr_1.append(float(3100 - shujv_veh_np[i][1]))
+            elif(shujv_veh_np[i][1] < 3500):
+                info_veh_nr_1.append(float(3500 - shujv_veh_np[i][1]))
+            elif(shujv_veh_np[i][1] < 4000):
+                info_veh_nr_1.append(float(4000 - shujv_veh_np[i][1]))
+            else:
+                info_veh_nr_1.append(float(1000))
+            info_veh_nr_1.append(shujv_veh_np[i][6])
+            info_veh_nr_1.append(shujv_veh_np[i][3])
+        elif(shujv_veh_np[i][4] == veh_nr_2):
+            info_veh_nr_2.append(shujv_veh_np[i][6])
+            info_veh_nr_2.append(shujv_veh_np[i][3])
+        elif(shujv_veh_np[i][4] == veh_nr_3):
+            info_veh_nr_3.append(shujv_veh_np[i][6])
+            info_veh_nr_3.append(shujv_veh_np[i][3])
+    duilie_list.append(info_veh_nr_1 + info_veh_nr_2 + info_veh_nr_3)
+
+print(duilie_list)
+
+duilie_np = np.array(duilie_list)
+print(duilie_np.shape)
+'''
