@@ -10,19 +10,13 @@ import numpy as np
 
 # 读取原始数据
 yuanshi_shujv = pd.read_table('hld_and_rxd.fzp', encoding = 'gbk')
-# print(yuanshi_shujv.head(50))
 
 # 提取有用数据
 shuzhi_shujv_col = yuanshi_shujv.iloc[13:]
-# print(shuzhi_shujv_col)
-
 shuzhi_shujv_fenge = pd.DataFrame([jj.split(';') for jj in shuzhi_shujv_col['Vehicle Record']])
-# print(shuzhi_shujv_fenge)
-
 shuzhi_shujv_fenge.columns = shuzhi_shujv_fenge.iloc[0]
-# print(shuzhi_shujv_fenge.columns)
 shuzhi_shujv_fenge = shuzhi_shujv_fenge.iloc[1:]
-# print(shuzhi_shujv_fenge)
+shuzhi_shujv_fenge = shuzhi_shujv_fenge.drop([' '], axis =1)
 
 # 类型转换
 shuzhi_shujv_fenge['Lane'] = shuzhi_shujv_fenge['Lane'].astype(int)
@@ -36,14 +30,9 @@ shuzhi_shujv_fenge[' Power'] = shuzhi_shujv_fenge[' Power'].astype(float)
 shuzhi_shujv_fenge['  LVeh'] = shuzhi_shujv_fenge['  LVeh'].astype(int)
 shuzhi_shujv_fenge['  Head'] = shuzhi_shujv_fenge['  Head'].astype(float)
 
-# 删除无效列
-shuzhi_shujv_fenge = shuzhi_shujv_fenge.drop([' '], axis =1)
-
-print(shuzhi_shujv_fenge)
-
 # ！！！需要更改的 VehNr 值
 
-veh_nr_1 = 1
+veh_nr_1 = 668
 veh_nr_2 = 1
 veh_nr_3 = 1
 time_jieduan_kaishi = 0
@@ -61,8 +50,8 @@ for j in range(i,shuzhi_shujv_fenge.shape[0]):
         time_jieduan_jieshu = shuzhi_shujv_fenge.iloc[j][5]
         break
 
-# print(veh_nr_2)
-# print(veh_nr_3)
+print(veh_nr_2)
+print(veh_nr_3)
 
 # 获取截取片段 的 结束时刻
 for k in range(j,shuzhi_shujv_fenge.shape[0]):
@@ -71,8 +60,8 @@ for k in range(j,shuzhi_shujv_fenge.shape[0]):
     if(shuzhi_shujv_fenge.iloc[k][5] - time_jieduan_jieshu > 1):
         break
 
-# print(time_jieduan_kaishi)
-# print(time_jieduan_jieshu)
+print(time_jieduan_kaishi)
+print(time_jieduan_jieshu)
 
 xuhao_jieduan_kaishi = 0
 xuhao_jieduan_jieshu = 0
@@ -89,8 +78,8 @@ for i in range(shuzhi_shujv_fenge.shape[0]):
      xuhao_jieduan_jieshu = i - 1
      break
 
-# print(xuhao_jieduan_kaishi)
-# print(xuhao_jieduan_jieshu)
+print(xuhao_jieduan_kaishi)
+print(xuhao_jieduan_jieshu)
 
 # 提取包含当前队列的信息
 shuzhi_shujv_veh_nr = shuzhi_shujv_fenge[xuhao_jieduan_kaishi:xuhao_jieduan_jieshu+1]
@@ -98,14 +87,46 @@ shuzhi_shujv_veh_nr = shuzhi_shujv_veh_nr.reset_index()
 shuzhi_shujv_veh_nr.drop(['index'], axis=1, inplace=True)
 
 
-shujv_veh_lst = [] 
+# 1号车的信息
+v1_all_list = []
+v1_t_list = []
+v1_v_list = []
 
-for i in range(shuzhi_shujv_veh_nr.shape[0]):
-    if(shuzhi_shujv_veh_nr.iloc[i][4] == veh_nr_1 or\
-       shuzhi_shujv_veh_nr.iloc[i][4] == veh_nr_2 or\
-       shuzhi_shujv_veh_nr.iloc[i][4] == veh_nr_3):
-        shujv_veh_lst.append(list(shuzhi_shujv_veh_nr.iloc[i]))
+# 2号车的信息
+v2_all_list = []
+v2_t_list = []
+v2_v_list = []
 
-shujv_veh_np = np.array(shujv_veh_lst)
-print(shujv_veh_np)
-print(shujv_veh_np.shape)
+# 3号车的信息
+v3_all_list = []
+v3_t_list = []
+v3_v_list = []
+
+for i in range (shuzhi_shujv_veh_nr.shape[0]):
+    if(shuzhi_shujv_veh_nr.iloc[i][4] == veh_nr_1):
+        v1_all_list.append(list(shuzhi_shujv_veh_nr.iloc[i]))
+        v1_t_list.append(shuzhi_shujv_veh_nr.iloc[i][5])
+        v1_v_list.append(shuzhi_shujv_veh_nr.iloc[i][6])
+    elif(shuzhi_shujv_veh_nr.iloc[i][4] == veh_nr_2):
+        v2_all_list.append(list(shuzhi_shujv_veh_nr.iloc[i]))
+        v2_t_list.append(shuzhi_shujv_veh_nr.iloc[i][5])
+        v2_v_list.append(shuzhi_shujv_veh_nr.iloc[i][6])
+    elif(shuzhi_shujv_veh_nr.iloc[i][4] == veh_nr_3):
+        v3_all_list.append(list(shuzhi_shujv_veh_nr.iloc[i]))
+        v3_t_list.append(shuzhi_shujv_veh_nr.iloc[i][5])
+        v3_v_list.append(shuzhi_shujv_veh_nr.iloc[i][6])
+
+
+v1_v_np = np.array(v1_v_list)
+v1_t_np = np.array(v1_t_list)
+
+v2_v_np = np.array(v2_v_list)
+v2_t_np = np.array(v2_t_list)
+
+v3_v_np = np.array(v3_v_list)
+v3_t_np = np.array(v3_t_list)
+
+plt.plot(v1_t_np, v1_v_np, 'b')
+plt.plot(v2_t_np, v2_v_np, 'r')
+plt.plot(v3_t_np, v3_v_np, 'g')
+plt.show()
