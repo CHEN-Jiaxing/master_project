@@ -32,7 +32,7 @@ shuzhi_shujv_fenge['  Head'] = shuzhi_shujv_fenge['  Head'].astype(float)
 
 # ！！！需要更改的 VehNr 值
 
-veh_nr_1 = 668
+veh_nr_1 = 526
 veh_nr_2 = 1
 veh_nr_3 = 1
 time_jieduan_kaishi = 0
@@ -73,9 +73,9 @@ for i in range(shuzhi_shujv_fenge.shape[0]):
      break
 
 # 获取 截取 结束 序号
-for i in range(shuzhi_shujv_fenge.shape[0]):
- if(shuzhi_shujv_fenge.iloc[i][5] == time_jieduan_jieshu + 0.2):
-     xuhao_jieduan_jieshu = i - 1
+for j in range(i,shuzhi_shujv_fenge.shape[0]):
+ if(shuzhi_shujv_fenge.iloc[j][5] == float(time_jieduan_jieshu + 0.2)):
+     xuhao_jieduan_jieshu = j - 1
      break
 
 print(xuhao_jieduan_kaishi)
@@ -87,32 +87,28 @@ shuzhi_shujv_veh_nr = shuzhi_shujv_veh_nr.reset_index()
 shuzhi_shujv_veh_nr.drop(['index'], axis=1, inplace=True)
 
 
-# 1号车的信息
-v1_all_list = []
+# 前车的信息
 v1_t_list = []
 v1_v_list = []
 
-# 2号车的信息
-v2_all_list = []
+# 中车的信息
 v2_t_list = []
 v2_v_list = []
 
-# 3号车的信息
-v3_all_list = []
+# 后车的信息
 v3_t_list = []
 v3_v_list = []
 
 for i in range (shuzhi_shujv_veh_nr.shape[0]):
     if(shuzhi_shujv_veh_nr.iloc[i][4] == veh_nr_1):
-        v1_all_list.append(list(shuzhi_shujv_veh_nr.iloc[i]))
         v1_t_list.append(shuzhi_shujv_veh_nr.iloc[i][5])
         v1_v_list.append(shuzhi_shujv_veh_nr.iloc[i][6])
+        
     elif(shuzhi_shujv_veh_nr.iloc[i][4] == veh_nr_2):
-        v2_all_list.append(list(shuzhi_shujv_veh_nr.iloc[i]))
         v2_t_list.append(shuzhi_shujv_veh_nr.iloc[i][5])
         v2_v_list.append(shuzhi_shujv_veh_nr.iloc[i][6])
+        
     elif(shuzhi_shujv_veh_nr.iloc[i][4] == veh_nr_3):
-        v3_all_list.append(list(shuzhi_shujv_veh_nr.iloc[i]))
         v3_t_list.append(shuzhi_shujv_veh_nr.iloc[i][5])
         v3_v_list.append(shuzhi_shujv_veh_nr.iloc[i][6])
 
