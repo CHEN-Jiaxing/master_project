@@ -7,6 +7,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import threading
 
 # 读取原始数据
 yuanshi_shujv = pd.read_table('hld_and_rxd.fzp', encoding = 'gbk')
@@ -30,9 +31,56 @@ shuzhi_shujv_fenge[' Power'] = shuzhi_shujv_fenge[' Power'].astype(float)
 shuzhi_shujv_fenge['  LVeh'] = shuzhi_shujv_fenge['  LVeh'].astype(int)
 shuzhi_shujv_fenge['  Head'] = shuzhi_shujv_fenge['  Head'].astype(float)
 
+# 多线程选取 前车 序号
+veh_nr_1_ls = []
+
+class myThread(threading.Thread):
+    def __init__(self, start_nr, end_nr, veh_nr_1_st):
+        threading.Thread.__init__(self)
+        self.start_nr = int(start_nr)
+        self.end_nr = int(end_nr)
+        self.veh_nr_1_st = veh_nr_1_st
+
+    def run(self):
+        for i in range(self.start_nr, self.end_nr):
+            if(shuzhi_shujv_fenge.iloc[i][8] <= 0):
+                self.veh_nr_1_st.add(shuzhi_shujv_fenge.iloc[i][4])
+
+ls1 = ls2 = ls3 = ls4 = ls5 = ls6 = ls7 = ls8 = {0}
+len_shujv = shuzhi_shujv_fenge.shape[0] - shuzhi_shujv_fenge.shape[0] % 8
+
+thread1 = myThread(len_shujv * 0 / 8, len_shujv * 1 / 8, ls1)
+thread2 = myThread(len_shujv * 1 / 8, len_shujv * 2 / 8, ls2)
+thread3 = myThread(len_shujv * 2 / 8, len_shujv * 3 / 8, ls3)
+thread4 = myThread(len_shujv * 3 / 8, len_shujv * 4 / 8, ls4)
+thread5 = myThread(len_shujv * 4 / 8, len_shujv * 5 / 8, ls5)
+thread6 = myThread(len_shujv * 5 / 8, len_shujv * 6 / 8, ls6)
+thread7 = myThread(len_shujv * 6 / 8, len_shujv * 7 / 8, ls7)
+thread8 = myThread(len_shujv * 7 / 8, len_shujv * 8 / 8, ls8)
+
+thread1.start()
+thread2.start()
+thread3.start()
+thread4.start()
+thread5.start()
+thread6.start()
+thread7.start()
+thread8.start()
+
+veh_nr_1_st = thread1.veh_nr_1_st.union(thread2.veh_nr_1_st)\
+              .union(thread3.veh_nr_1_st).union(thread4.veh_nr_1_st)\
+              .union(thread5.veh_nr_1_st).union(thread6.veh_nr_1_st)\
+              .union(thread7.veh_nr_1_st).union(thread8.veh_nr_1_st)
+
+veh_nr_1_ls = list(veh_nr_1_st)
+veh_nr_1_ls.sort()
+print(veh_nr_1_ls)
+
+
+'''
 # ！！！需要更改的 VehNr 值
 
-veh_nr_1 = 526
+veh_nr_1 = 198
 veh_nr_2 = 1
 veh_nr_3 = 1
 time_jieduan_kaishi = 0
@@ -68,13 +116,13 @@ xuhao_jieduan_jieshu = 0
 
 # 获取 截取 开始 序号
 for i in range(shuzhi_shujv_fenge.shape[0]):
- if(shuzhi_shujv_fenge.iloc[i][5] == time_jieduan_kaishi):
+ if(abs(shuzhi_shujv_fenge.iloc[i][5] - time_jieduan_kaishi) < 1e-3):
      xuhao_jieduan_kaishi = i
      break
 
 # 获取 截取 结束 序号
 for j in range(i,shuzhi_shujv_fenge.shape[0]):
- if(shuzhi_shujv_fenge.iloc[j][5] == float(time_jieduan_jieshu + 0.2)):
+ if(abs(shuzhi_shujv_fenge.iloc[j][5] - (time_jieduan_jieshu + 0.2)) < 1e-3 ):
      xuhao_jieduan_jieshu = j - 1
      break
 
@@ -126,3 +174,5 @@ plt.plot(v1_t_np, v1_v_np, 'b')
 plt.plot(v2_t_np, v2_v_np, 'r')
 plt.plot(v3_t_np, v3_v_np, 'g')
 plt.show()
+
+'''
