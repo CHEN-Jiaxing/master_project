@@ -7,6 +7,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import threading
 
 # 读取原始数据
 yuanshi_shujv = pd.read_table('hld_and_rxd.fzp', encoding = 'gbk')
@@ -29,6 +30,51 @@ shuzhi_shujv_fenge['    vMS'] = shuzhi_shujv_fenge['    vMS'].astype(float)
 shuzhi_shujv_fenge[' Power'] = shuzhi_shujv_fenge[' Power'].astype(float)
 shuzhi_shujv_fenge['  LVeh'] = shuzhi_shujv_fenge['  LVeh'].astype(int)
 shuzhi_shujv_fenge['  Head'] = shuzhi_shujv_fenge['  Head'].astype(float)
+
+# 多线程选取 前车 序号
+veh_nr_1_ls = []
+
+class myThread(threading.Thread):
+    def __init__(self, start_nr, end_nr, veh_nr_1_st):
+        threading.Thread.__init__(self)
+        self.start_nr = int(start_nr)
+        self.end_nr = int(end_nr)
+        self.veh_nr_1_st = veh_nr_1_st
+
+    def run(self):
+        for i in range(self.start_nr, self.end_nr):
+            if(shuzhi_shujv_fenge.iloc[i][8] <= 0):
+                self.veh_nr_1_st.add(shuzhi_shujv_fenge.iloc[i][4])
+
+ls1 = ls2 = ls3 = ls4 = ls5 = ls6 = ls7 = ls8 = {0}
+len_shujv = shuzhi_shujv_fenge.shape[0] - shuzhi_shujv_fenge.shape[0] % 8
+
+thread1 = myThread(len_shujv * 0 / 8, len_shujv * 1 / 8, ls1)
+thread2 = myThread(len_shujv * 1 / 8, len_shujv * 2 / 8, ls2)
+thread3 = myThread(len_shujv * 2 / 8, len_shujv * 3 / 8, ls3)
+thread4 = myThread(len_shujv * 3 / 8, len_shujv * 4 / 8, ls4)
+thread5 = myThread(len_shujv * 4 / 8, len_shujv * 5 / 8, ls5)
+thread6 = myThread(len_shujv * 5 / 8, len_shujv * 6 / 8, ls6)
+thread7 = myThread(len_shujv * 6 / 8, len_shujv * 7 / 8, ls7)
+thread8 = myThread(len_shujv * 7 / 8, len_shujv * 8 / 8, ls8)
+
+thread1.start()
+thread2.start()
+thread3.start()
+thread4.start()
+thread5.start()
+thread6.start()
+thread7.start()
+thread8.start()
+
+veh_nr_1_st = thread1.veh_nr_1_st.union(thread2.veh_nr_1_st)\
+              .union(thread3.veh_nr_1_st).union(thread4.veh_nr_1_st)\
+              .union(thread5.veh_nr_1_st).union(thread6.veh_nr_1_st)\
+              .union(thread7.veh_nr_1_st).union(thread8.veh_nr_1_st)
+
+veh_nr_1_ls = list(veh_nr_1_st)
+veh_nr_1_ls.sort()
+print(veh_nr_1_ls)
 
 # ！！！需要更改的 VehNr 值
 
@@ -87,32 +133,28 @@ shuzhi_shujv_veh_nr = shuzhi_shujv_veh_nr.reset_index()
 shuzhi_shujv_veh_nr.drop(['index'], axis=1, inplace=True)
 
 
-# 1号车的信息
-v1_all_list = []
+# 前车的信息
 v1_t_list = []
 v1_v_list = []
 
-# 2号车的信息
-v2_all_list = []
+# 中车的信息
 v2_t_list = []
 v2_v_list = []
 
-# 3号车的信息
-v3_all_list = []
+# 后车的信息
 v3_t_list = []
 v3_v_list = []
 
 for i in range (shuzhi_shujv_veh_nr.shape[0]):
     if(shuzhi_shujv_veh_nr.iloc[i][4] == veh_nr_1):
-        v1_all_list.append(list(shuzhi_shujv_veh_nr.iloc[i]))
         v1_t_list.append(shuzhi_shujv_veh_nr.iloc[i][5])
         v1_v_list.append(shuzhi_shujv_veh_nr.iloc[i][6])
+        
     elif(shuzhi_shujv_veh_nr.iloc[i][4] == veh_nr_2):
-        v2_all_list.append(list(shuzhi_shujv_veh_nr.iloc[i]))
         v2_t_list.append(shuzhi_shujv_veh_nr.iloc[i][5])
         v2_v_list.append(shuzhi_shujv_veh_nr.iloc[i][6])
+        
     elif(shuzhi_shujv_veh_nr.iloc[i][4] == veh_nr_3):
-        v3_all_list.append(list(shuzhi_shujv_veh_nr.iloc[i]))
         v3_t_list.append(shuzhi_shujv_veh_nr.iloc[i][5])
         v3_v_list.append(shuzhi_shujv_veh_nr.iloc[i][6])
 
@@ -131,6 +173,7 @@ plt.plot(v2_t_np, v2_v_np, 'r')
 plt.plot(v3_t_np, v3_v_np, 'g')
 plt.show()
 
+# 提取1，2，3号车信息
 
 shujv_veh_lst = [] 
 
