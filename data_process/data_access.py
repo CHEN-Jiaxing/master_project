@@ -30,6 +30,7 @@ shuzhi_shujv_fenge['    vMS'] = shuzhi_shujv_fenge['    vMS'].astype(float)
 shuzhi_shujv_fenge[' Power'] = shuzhi_shujv_fenge[' Power'].astype(float)
 shuzhi_shujv_fenge['  LVeh'] = shuzhi_shujv_fenge['  LVeh'].astype(int)
 shuzhi_shujv_fenge['  Head'] = shuzhi_shujv_fenge['  Head'].astype(float)
+'''
 
 # 多线程选取 前车 序号
 veh_nr_1_ls = []
@@ -76,37 +77,11 @@ veh_nr_1_st = thread1.veh_nr_1_st.union(thread2.veh_nr_1_st)\
 veh_nr_1_ls = list(veh_nr_1_st)
 veh_nr_1_ls.sort()
 print(veh_nr_1_ls)
-
-# 对 前车 优化选取
-def veh_nr_1_ls_shaixuan(ls):
-    ls_temp = ls
-    ls = []
-    jiasu = 0
-    for i_ls in range(len(ls_temp)):
-        veh_nr_1 = ls_temp[i_ls]
-        veh_nr_2 = 1
-        veh_nr_3 = 1
-        
-        for i in range(jiasu, shuzhi_shujv_fenge.shape[0]):
-            if(shuzhi_shujv_fenge.iloc[i][8] == veh_nr_1):
-                veh_nr_2 = int(shuzhi_shujv_fenge.iloc[i][4])
-                break
-        for j in range(i,shuzhi_shujv_fenge.shape[0]):
-            if(shuzhi_shujv_fenge.iloc[j][8] == veh_nr_2):
-                veh_nr_3 = int(shuzhi_shujv_fenge.iloc[j][4])
-                jiasu = j
-                break
-        if(veh_nr_2 != 1 and veh_nr_3 != 1):
-            ls.append(veh_nr_1)
-    return ls
-
-veh_nr_1_ls = veh_nr_1_ls_shaixuan(veh_nr_1_ls)
-# print(veh_nr_1_ls)
-
+'''
 
 # ！！！需要更改的 VehNr 值
 
-veh_nr_1 = 13
+veh_nr_1 = 3464
 veh_nr_2 = 1
 veh_nr_3 = 1
 time_jieduan_kaishi = 0
@@ -151,6 +126,8 @@ for j in range(i,shuzhi_shujv_fenge.shape[0]):
  if(abs(shuzhi_shujv_fenge.iloc[j][5] - (time_jieduan_jieshu + 0.2)) < 1e-3 ):
      xuhao_jieduan_jieshu = j - 1
      break
+ elif(abs(time_jieduan_jieshu - 3600) < 1e-3):
+        xuhao_jieduan_jieshu = shuzhi_shujv_fenge.shape[0]
 
 print(xuhao_jieduan_kaishi)
 print(xuhao_jieduan_jieshu)
