@@ -12,14 +12,23 @@ OUTPUT_SIZE = 1
 CELL_SIZE = 20
 LR = 0.006
 
-x1 = np.arange(10,210).reshape(200,1)
-x2 = np.arange(5,205).reshape(200,1)
-x3 = np.arange(16,216).reshape(200,1)
+x1 = np.arange(10,2010).reshape(2000,1)
+x2 = np.arange(5,2005).reshape(2000,1)
+x3 = np.arange(16,2016).reshape(2000,1)
 y = x1 + x2 + x3
 
-X_batch = np.concatenate((x1,x2,x3),axis = 1).reshape(10,20,3)
-Y_batch = y.reshape(10,20,1)
+x = np.concatenate((x1,x2,x3),axis = 1).flatten()
+y = y.flatten()
+index = 0
 
+def batch():
+    global x, y, index
+    X_batch = x[index*20*3: index*20*3 + 10*20*3].reshape(10,20,3)
+    Y_batch = y[index*20*1: index*20*1 + 10*20*1].reshape(10,20,1)
+    index += 2
+    index %= 20
+    
+    return [X_batch, Y_batch]
 
 '''
 def get_batch():
@@ -50,10 +59,10 @@ model.compile(optimizer=adam,
               loss='mse',)
 
 print('Training ------------')
-for step in range(30001):
+for step in range(5001):
     # data shape = (batch_num, steps, inputs/outputs)
     # X_batch, Y_batch, xs = get_batch()
-
+    X_batch, Y_batch = batch()
     cost = model.train_on_batch(X_batch, Y_batch)
     pred = model.predict(X_batch, BATCH_SIZE)
     if step % 10 == 0:
