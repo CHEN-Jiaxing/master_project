@@ -4,7 +4,7 @@ import math
 import random as rd
 
 
-# * 整车质量
+# * veh_mass
 veh_mass = 1670.0 # *Kg
 veh_grav = 9.8 # * m/(s^2)
 
@@ -20,10 +20,10 @@ air_density = 1.2
 f_roll_resis_coeff = 0.015 
 wheel_radius = 0.2820
 
-# * 主减
+# * final_drive
 i_fd = 1
 
-# * 转换质量 参数
+# * delt coefficient of mass
 delt1 = 0.04
 delt2 = 0.04
 
@@ -31,8 +31,8 @@ delt2 = 0.04
 SOC_low_limit = 0.05
 C_bat = 37.0 * 3600.0
 
-ess_r_dis = 1.3*96.0/1000
-ess_r_ch = 1.3 *96.0/1000
+ess_r_dis = 1.3 * 96.0 / 1000
+ess_r_ch = 1.3 * 96.0 / 1000
 
 ess_voc_map = np.array([3.438*96,3.533*96,3.597*96,3.627*96,3.658*96,3.719*96,3.785*96,3.858*96 ,3.946*96,4.049*96,4.18*96])
 ess_soc_map = np.array([0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1])
@@ -49,22 +49,22 @@ fc_fuel_map = np.array([0.0000001,0.0733,0.151,0.2307,0.3074,0.3812,0.4577,0.516
 
 # * about electric motor
 em_eff_tab=np.array([[0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7],
-    [0.7,0.77,0.81,0.82,0.82,0.82,0.81,0.8,0.79,0.78,0.78],
-    [0.7,0.82,0.85,0.86,0.87,0.88,0.87,0.86,0.86,0.86,0.85],
-    [0.7,0.87,0.89,0.9,0.9,0.9,0.9,0.89,0.88,0.87,0.86],
-    [0.7,0.88,0.91,0.91,0.91,0.9,0.88,0.87,0.85,0.82,0.81],
-    [0.7,0.89,0.91,0.91,0.9,0.87,0.85,0.82,0.82,0.82,0.82],
-    [0.7,0.9,0.91,0.9,0.86,0.82,0.79,0.78,0.79,0.79,0.79],
-    [0.7,0.91,0.91,0.88,0.8,0.78,0.78,0.78,0.78,0.78,0.78],
-    [0.70,0.92,0.90,0.80,0.78,0.78,0.78,0.78,0.78,0.78,0.78],
-    [0.70,0.92,0.88,0.78,0.78,0.78,0.78,0.78,0.78,0.78,0.78],
-    [0.70,0.92,0.80,0.78,0.78,0.78,0.78,0.78,0.78,0.78,0.78]])
+                    [0.7,0.77,0.81,0.82,0.82,0.82,0.81,0.8,0.79,0.78,0.78],
+                    [0.7,0.82,0.85,0.86,0.87,0.88,0.87,0.86,0.86,0.86,0.85],
+                    [0.7,0.87,0.89,0.9,0.9,0.9,0.9,0.89,0.88,0.87,0.86],
+                    [0.7,0.88,0.91,0.91,0.91,0.9,0.88,0.87,0.85,0.82,0.81],
+                    [0.7,0.89,0.91,0.91,0.9,0.87,0.85,0.82,0.82,0.82,0.82],
+                    [0.7,0.9,0.91,0.9,0.86,0.82,0.79,0.78,0.79,0.79,0.79],
+                    [0.7,0.91,0.91,0.88,0.8,0.78,0.78,0.78,0.78,0.78,0.78],
+                    [0.70,0.92,0.90,0.80,0.78,0.78,0.78,0.78,0.78,0.78,0.78],
+                    [0.70,0.92,0.88,0.78,0.78,0.78,0.78,0.78,0.78,0.78,0.78],
+                    [0.70,0.92,0.80,0.78,0.78,0.78,0.78,0.78,0.78,0.78,0.78]])
 
 em_torq_map=np.array([0,27.1137,54.2274,81.3411,108.4547,135.5684,162.6821,189.7958,216.9095,244.0232,271.1368])
 em_spd_map=np.array([ 0,104.7,209.4,314.2,418.9,523.6,628.3,733.0,837.8,942.5,1047.2])
 
 
-# * 齿轮箱档比计算
+# * gear ratio calc
 
 def i_g_calc(veh_velc):
         if(veh_velc > 50.0/3.6):
@@ -101,10 +101,9 @@ def em_eff_cal(gb_torque,gb_speed):
     em_eff = (em_eff_tab[j-1][i-1] + em_eff_tab[j][i-1] + em_eff_tab[j-1][i] + em_eff_tab[j][i])/4
     return em_eff
 
-def fc_eff_cal(p_fc):
+# * power-efficiency
 
-    # * power-efficiency
-    # ? fc_eff
+def fc_eff_cal(p_fc):
 
     for i in range(len(fc_pwr_map)):
         if(p_fc>fc_pwr_map[i]):
@@ -115,11 +114,8 @@ def fc_eff_cal(p_fc):
     fc_eff = (p_fc-fc_pwr_map[i-1]) * (fc_eff_map[i]-fc_eff_map[i-1])/ (fc_pwr_map[i]-fc_pwr_map[i-1])+fc_eff_map[i-1]
     return fc_eff
 
-   
+# * fuel consumption
 def fuel_cons_cal(p_fc):
-
-    # * fuel consumption
-    # ? fuel_consumption
 
     for i in range(len(fc_pwr_map)):
         if(p_fc > fc_pwr_map[i]):
@@ -130,10 +126,8 @@ def fuel_cons_cal(p_fc):
     fc_fuel_cons = ((p_fc-fc_pwr_map[i-1]) * (fc_fuel_map[i]-fc_fuel_map[i-1])/ (fc_pwr_map[i]-fc_pwr_map[i-1])+fc_fuel_map[i-1])*samp_time
     return fc_fuel_cons
 
+# * fc_deg
 def fc_deg_cal(fc_state_cur,fc_state_pre,fc_deg,fc_pwr_pre,fc_pwr_cur):
-
-    # * fc durability
-    # ? fc_deg
 
     if(fc_state_cur == 1 and fc_state_pre == 0):
         fc_deg = fc_deg + 1.96e-3
@@ -148,11 +142,10 @@ def fc_deg_cal(fc_state_cur,fc_state_pre,fc_deg,fc_pwr_pre,fc_pwr_cur):
 
     return fc_deg
 
+# * battery model
+# * SOC
 def SOC_cal(p_bat,SOC):
     
-    # * battery model
-    # ? SOC
-
     for i in range(len(ess_soc_map)):
         if(SOC > ess_soc_map[i]):
             continue
@@ -203,12 +196,12 @@ for i in range(len(veh_velc_list)):
 
     veh_velc = veh_velc_list[i]
     veh_acc = veh_acc_list[i]
-   
-    i_g = i_g_calc(veh_velc) # * transmission ratio
+    
+    # * transmission ratio
+    i_g = i_g_calc(veh_velc) 
 
-    delt = 1 + delt1 + delt2 * i_g ** 2 # * 转换质量参数计算
-
-
+    # * 转换质量参数计算
+    delt = 1 + delt1 + delt2 * i_g ** 2 
 
     veh_force = veh_force_cal(f_roll_resis_coeff,veh_mass,veh_grav,road_grade,veh_CD,veh_A,air_density,veh_velc,delt,veh_acc)
 
