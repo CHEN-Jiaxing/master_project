@@ -3,7 +3,6 @@ from matplotlib import pyplot as plt
 import math
 import random as rd
 
-
 # * veh_mass
 veh_mass = 1670.0 # *Kg
 veh_grav = 9.8 # * m/(s^2)
@@ -28,11 +27,15 @@ delt1 = 0.04
 delt2 = 0.04
 
 # * about battery
-SOC_low_limit = 0.05
+SOC_low_limit = 0.3
+SOC_high_limit = 0.8
 C_bat = 37.0 * 3600.0
 
 ess_r_dis = 1.3 * 96.0 / 1000
 ess_r_ch = 1.3 * 96.0 / 1000
+
+ess_pwr_ch = 19250
+ess_pwr_dis = 66000
 
 ess_voc_map = np.array([3.438*96,3.533*96,3.597*96,3.627*96,3.658*96,3.719*96,3.785*96,3.858*96 ,3.946*96,4.049*96,4.18*96])
 ess_soc_map = np.array([0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1])
@@ -63,7 +66,6 @@ em_eff_tab=np.array([[0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7,0.7],
 em_torq_map=np.array([0,27.1137,54.2274,81.3411,108.4547,135.5684,162.6821,189.7958,216.9095,244.0232,271.1368])
 em_spd_map=np.array([ 0,104.7,209.4,314.2,418.9,523.6,628.3,733.0,837.8,942.5,1047.2])
 
-
 # * gear ratio calc
 
 def i_g_calc(veh_velc):
@@ -83,7 +85,6 @@ def veh_force_cal(f_roll_resis_coeff,veh_mass,veh_grav,road_grade,veh_CD,veh_A,a
     F_acc_resis = delt * veh_mass * veh_acc
 
     return  F_roll_resis + F_ascend_resis + F_air_resis + F_acc_resis
-
 
 # * about electric motor
 def em_eff_cal(gb_torque,gb_speed):
@@ -144,8 +145,8 @@ def fc_deg_cal(fc_state_cur,fc_state_pre,fc_deg,fc_pwr_pre,fc_pwr_cur):
 
 # * battery model
 # * SOC
-def SOC_cal(p_bat,SOC):
-    
+
+def VOC_cal(SOC):
     for i in range(len(ess_soc_map)):
         if(SOC > ess_soc_map[i]):
             continue
@@ -153,6 +154,11 @@ def SOC_cal(p_bat,SOC):
             break
 
     ess_voc = ((SOC-ess_soc_map[i-1]) * (ess_voc_map[i]-ess_voc_map[i-1])/ (ess_soc_map[i]-ess_soc_map[i-1])+ess_voc_map[i-1])
+    return ess_voc
+
+def SOC_cal(p_bat,SOC):
+    
+    ess_voc = VOC_cal(SOC)
 
     if(p_bat>0):
         SOC = SOC - ((ess_voc-math.sqrt(ess_voc**2-4.0*ess_r_ch*abs(p_bat)))/2.0*ess_r_ch)*samp_time/C_bat
@@ -161,28 +167,27 @@ def SOC_cal(p_bat,SOC):
 
     return SOC
 
+
+
 # * about kinematic m*s**(-1)    m*s**(-2)
-# ! input and output parameters setting
-veh_velc_list = list([1.0,2.0,3.0,4.0,2.0,6.0])
-veh_acc_list = list([1,1,1,1,-2,4])
+# ! !!!input and output parameters setting
+veh_velc_list = [1.0,2.0,3.0,4.0,2.0,6.0]
+veh_acc_list = [1,1,1,1,-2,4]
 
 samp_time = 1.0
-
 t_list = list(range(len(veh_velc_list)))
-
 for i in range(len(t_list)):
     t_list[i] = t_list[i] * samp_time
 
-# ! 根据当前值与前一步值计算下一步值，导致矩阵维度的不一致
-SOC_list = list([0.6])
-fuel_consumption_list = list([0.0])
-fc_state_list = list([0])
-fc_deg_list = list([0])
-fc_eff_list = list([0])
-p_bus_list = list([0])
-p_bat_list = list([0])
-p_fc_list = list([0])
-
+# * 根据当前值与前一步值计算下一步值，导致矩阵维度的不一致 后面有统一维度操作
+SOC_list = [0.6]
+fuel_consumption_list = [0.0]
+fc_state_list = [0]
+fc_deg_list = [0]
+fc_eff_list = [0]
+p_bus_list = [0]
+p_bat_list = [0]
+p_fc_list = [0]
 
 for i in range(len(veh_velc_list)):
 
@@ -266,13 +271,32 @@ for i in range(len(veh_velc_list)):
     SOC = SOC_cal(p_bat,SOC)
     SOC_list.append(SOC)
 
+# ! XXXX
+def c2g_cal(fc_pwr_grid, SOC_grid):
+    return 0
 
-# plt.plot(t_list,veh_velc_list)
-# plt.show()
-# plt.plot(t_list,veh_acc_list)
-# plt.show()
-
+# * 统一维度
 t_list.append(t_list[-1]+samp_time)
+veh_velc_list = [0] + veh_velc_list
 
-plt.plot(t_list,SOC_list)
+plt.plot(t_list,p_fc_list)
 plt.show()
+
+N = len(t_list)
+
+SOC_grid = np.arange(SOC_low_limit, SOC_high_limit + 0.02, 0.02, float)
+
+n_soc = len(SOC_grid)
+
+Value = np.zeros((n_soc, N))
+
+for i in range(N-1, -1, -1):
+    for j in range(n_soc):
+        ess_pwr_lb = max(((SOC_high_limit - SOC_grid[j])*C_bat*VOC_cal(SOC_grid[j])/-samp_time), -ess_pwr_ch, p_bus_list[i] - fc_pwr_high)
+        ess_pwr_ub = min(((SOC_low_limit - SOC_grid[j])*C_bat*VOC_cal(SOC_grid[j])/-samp_time), ess_pwr_dis, p_bus_list[i])
+        ess_pwr_grid = np.arange(ess_pwr_lb, ess_pwr_ub + 50, 50)
+        fc_pwr_grid = p_bus_list[i] - ess_pwr_grid
+        c2g = c2g_cal(fc_pwr_grid, SOC_grid[j])
+        SOC_next = SOC_grid[j] - (samp_time * ess_pwr_grid / (C_bat*VOC_cal(SOC_grid[j])))
+        V_nxt = np.interp(SOC_next, SOC_grid, Value[:,i+1])
+
