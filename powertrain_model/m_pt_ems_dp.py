@@ -190,15 +190,6 @@ p_bat_list = [0]
 p_fc_list = [0]
 
 for i in range(len(veh_velc_list)):
-
-    SOC = SOC_list[i]
-    fuel_consumption = fuel_consumption_list[i]
-
-    if SOC < SOC_low_limit and fuel_consumption < fuel_storage:
-        print("NO POWER AVAILABLE")
-        break
-    
-
     veh_velc = veh_velc_list[i]
     veh_acc = veh_acc_list[i]
     
@@ -231,49 +222,23 @@ for i in range(len(veh_velc_list)):
 
     p_bus_list.append(p_bus)
 
-    # todo energy manegement strategy
 
-    p_bat = rd.randint(-30,30)*1000
-    p_bat_list.append(p_bat)
+'''
+def c2g_cal(fc_pwr_grid, fc_pwr_grid_pre, SOC_cur, SOC_exp):
+    c2g = np.zeros((len(fc_pwr_grid),1))
+    for i in range(len(fc_pwr_grid)):
+        if(fc_pwr_grid > 0):
+            fc_state_cur = 1
+        else:
+            fc_state_cur = 0
 
-    p_fc  = p_bus - p_bat
-    p_fc_list.append(p_fc)
+        if(fc_pwr_grid_pre > 0):
+            fc_state_pre = 1
+        else:
+            fc_state_pre = 0
+        c2g[i][0] = fc_deg_cal(fc_state_cur, fc_state_pre, 0, fc_pwr_grid_pre, fc_pwr_grid) + (SOC_cur - SOC_exp)**2
+    return c2g
 
-
-    # todo *************************end
-
-
-    # * fc start detection
-
-    if(fuel_consumption<fuel_storage and p_fc>0):
-        fc_state_list.append(1.0)
-    else:
-        fc_state_list.append(0.0)
-    
-    fc_state_pre = fc_state_list[i]
-    fc_state_cur = fc_state_list[i+1]
-
-    fc_eff = fc_eff_cal(p_fc)
-    fc_eff_list.append(fc_eff)
-
-
-    fc_fuel_cons = fuel_cons_cal(p_fc)
-    fuel_consumption = fuel_consumption + fc_fuel_cons
-    fuel_consumption_list.append(fuel_consumption)
-
-    fc_pwr_pre = p_fc_list[i]
-    fc_pwr_cur = p_fc
-
-    fc_deg = fc_deg_list[i]
-    fc_deg = fc_deg + fc_deg_cal(fc_state_cur,fc_state_pre,fc_deg,fc_pwr_pre,fc_pwr_cur)
-    fc_deg_list.append(fc_deg)
-
-    SOC = SOC_cal(p_bat,SOC)
-    SOC_list.append(SOC)
-
-# ! XXXX
-def c2g_cal(fc_pwr_grid, SOC_grid):
-    return 0
 
 # * 统一维度
 t_list.append(t_list[-1]+samp_time)
@@ -289,14 +254,41 @@ SOC_grid = np.arange(SOC_low_limit, SOC_high_limit + 0.02, 0.02, float)
 n_soc = len(SOC_grid)
 
 Value = np.zeros((n_soc, N))
+ess_pwr_opt = np.zeros((n_soc, N))
+fc_pwr_grid_pre = np.zeros(100,1)
+SOC_exp = 0.6
 
 for i in range(N-1, -1, -1):
     for j in range(n_soc):
         ess_pwr_lb = max(((SOC_high_limit - SOC_grid[j])*C_bat*VOC_cal(SOC_grid[j])/-samp_time), -ess_pwr_ch, p_bus_list[i] - fc_pwr_high)
         ess_pwr_ub = min(((SOC_low_limit - SOC_grid[j])*C_bat*VOC_cal(SOC_grid[j])/-samp_time), ess_pwr_dis, p_bus_list[i])
-        ess_pwr_grid = np.arange(ess_pwr_lb, ess_pwr_ub + 50, 50)
+        ess_pwr_step = (ess_pwr_ub - ess_pwr_lb)/100
+        ess_pwr_grid = np.arange(ess_pwr_lb, ess_pwr_ub + ess_pwr_step, ess_pwr_step)
         fc_pwr_grid = p_bus_list[i] - ess_pwr_grid
-        c2g = c2g_cal(fc_pwr_grid, SOC_grid[j])
-        SOC_next = SOC_grid[j] - (samp_time * ess_pwr_grid / (C_bat*VOC_cal(SOC_grid[j])))
+        c2g = c2g_cal(fc_pwr_grid, fc_pwr_grid_pre, SOC_grid[j], SOC_exp)
+        SOC_next = SOC_grid[j] - (samp_time * ess_pwr_grid / (C_bat * VOC_cal(SOC_grid[j])))
         V_nxt = np.interp(SOC_next, SOC_grid, Value[:,i+1])
+        k = np.argmin(c2g + V_nxt)
+        ess_pwr_opt[j][i] = ess_pwr_grid[k]
+        fc_pwr_grid_pre = fc_pwr_grid
 
+def run(SOC_init, N, SOC_grid, ess_pwr_opt, p_bus_list):
+    SOC_act = np.zeros(N)
+    SOC_act[0] = SOC_init
+    ess_pwr_act = np.zeros(N)
+    fc_pwr_act = np.zeros(N)
+    samp_time = 1
+    C_bat = 37.0 * 3600.0
+    for i in range(N-1):
+        ess_pwr_act[i] = np.interp(SOC_act[i], SOC_grid, ess_pwr_opt[:,i])
+        fc_pwr_act[i] = p_bus_list[i] - ess_pwr_act[i]
+        SOC_act[i+1] = SOC_act[i] - ((samp_time * ess_pwr_act[i])/C_bat * VOC_cal(SOC_grid[j]))
+    
+    return [ess_pwr_act, fc_pwr_act, SOC_act]
+
+[Pb_07, Pe_07, SOC_07]= run(0.7,N,SOC_grid,ess_pwr_opt,p_bus_list)
+
+plt.plot(Pb_07)
+plt.show()
+
+'''
