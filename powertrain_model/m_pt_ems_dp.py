@@ -172,7 +172,7 @@ def SOC_cal(p_bat,SOC):
 # * about kinematic m*s**(-1)    m*s**(-2)
 # ! !!!input and output parameters setting
 veh_velc_list = [1.0,2.0,3.0,4.0,2.0,6.0]
-veh_acc_list = [1,1,1,1,-2,4]
+veh_acc_list = [1,1,1,1,2,4]
 
 samp_time = 1.0
 t_list = list(range(len(veh_velc_list)))
@@ -223,51 +223,67 @@ for i in range(len(veh_velc_list)):
     p_bus_list.append(p_bus)
 
 
-'''
+
 def c2g_cal(fc_pwr_grid, fc_pwr_grid_pre, SOC_cur, SOC_exp):
-    c2g = np.zeros((len(fc_pwr_grid),1))
+    c2g = np.zeros(len(fc_pwr_grid))
     for i in range(len(fc_pwr_grid)):
-        if(fc_pwr_grid > 0):
+        if(fc_pwr_grid[i] > 0):
             fc_state_cur = 1
         else:
             fc_state_cur = 0
 
-        if(fc_pwr_grid_pre > 0):
+        if(fc_pwr_grid_pre[i] > 0):
             fc_state_pre = 1
         else:
             fc_state_pre = 0
-        c2g[i][0] = fc_deg_cal(fc_state_cur, fc_state_pre, 0, fc_pwr_grid_pre, fc_pwr_grid) + (SOC_cur - SOC_exp)**2
+        c2g[i] = fc_deg_cal(fc_state_cur, fc_state_pre, 0, fc_pwr_grid_pre[i], fc_pwr_grid[i]) + (SOC_cur - SOC_exp)**2
     return c2g
 
+def V_nxt_i_cal(SOC_next_i, SOC_grid, Value_cut):
+
+    for i in range(len(SOC_grid)):
+        if(SOC_next_i>SOC_grid[i]):
+            continue
+        else:
+            break
+
+    V_nxt_i = (SOC_next_i-SOC_grid[i-1]) * (Value_cut[i]-Value_cut[i-1])/ (SOC_grid[i]-SOC_grid[i-1])+Value_cut[i-1]
+    return V_nxt_i
+
+def V_nxt_cal(SOC_next, SOC_grid, Value_cut):
+    V_nxt = np.zeros(len(SOC_next))
+    for i in range(len(SOC_next)):
+        V_nxt[i] = V_nxt_i_cal(SOC_next[i], SOC_grid, Value_cut)
+    return V_nxt
 
 # * 统一维度
 t_list.append(t_list[-1]+samp_time)
 veh_velc_list = [0] + veh_velc_list
 
-plt.plot(t_list,p_fc_list)
-plt.show()
+# plt.plot(t_list,p_bus_list)
+# plt.show()
 
 N = len(t_list)
 
-SOC_grid = np.arange(SOC_low_limit, SOC_high_limit + 0.02, 0.02, float)
+SOC_grid = np.arange(SOC_low_limit, SOC_high_limit + 0.02, 0.02, float).reshape(26,1)
 
 n_soc = len(SOC_grid)
 
 Value = np.zeros((n_soc, N))
-ess_pwr_opt = np.zeros((n_soc, N))
-fc_pwr_grid_pre = np.zeros(100,1)
+ess_pwr_opt = np.zeros((n_soc, N - 1))
+fc_pwr_grid_pre = np.zeros(101)
 SOC_exp = 0.6
 
-for i in range(N-1, -1, -1):
+for i in range(N-2, -1, -1):
     for j in range(n_soc):
         ess_pwr_lb = max(((SOC_high_limit - SOC_grid[j])*C_bat*VOC_cal(SOC_grid[j])/-samp_time), -ess_pwr_ch, p_bus_list[i] - fc_pwr_high)
         ess_pwr_ub = min(((SOC_low_limit - SOC_grid[j])*C_bat*VOC_cal(SOC_grid[j])/-samp_time), ess_pwr_dis, p_bus_list[i])
-        ess_pwr_step = (ess_pwr_ub - ess_pwr_lb)/100
-        ess_pwr_grid = np.arange(ess_pwr_lb, ess_pwr_ub + ess_pwr_step, ess_pwr_step)
+        
+        ess_pwr_grid = np.linspace(ess_pwr_lb, ess_pwr_ub, 100)
         fc_pwr_grid = p_bus_list[i] - ess_pwr_grid
         c2g = c2g_cal(fc_pwr_grid, fc_pwr_grid_pre, SOC_grid[j], SOC_exp)
         SOC_next = SOC_grid[j] - (samp_time * ess_pwr_grid / (C_bat * VOC_cal(SOC_grid[j])))
-        V_nxt = np.interp(SOC_next, SOC_grid, Value[:,i+1])
+        V_nxt = V_nxt_cal(SOC_next, SOC_grid, Value[:,i+1].reshape(26,1))
         k = np.argmin(c2g + V_nxt)
         ess_pwr_opt[j][i] = ess_pwr_grid[k]
         fc_pwr_grid_pre = fc_pwr_grid
@@ -282,7 +298,7 @@ def run(SOC_init, N, SOC_grid, ess_pwr_opt, p_bus_list):
     for i in range(N-1):
         ess_pwr_act[i] = np.interp(SOC_act[i], SOC_grid, ess_pwr_opt[:,i])
         fc_pwr_act[i] = p_bus_list[i] - ess_pwr_act[i]
-        SOC_act[i+1] = SOC_act[i] - ((samp_time * ess_pwr_act[i])/C_bat * VOC_cal(SOC_grid[j]))
+        SOC_act[i+1] = SOC_act[i] - ((samp_time * ess_pwr_act[i])/(C_bat * VOC_cal(SOC_grid[j])))
     
     return [ess_pwr_act, fc_pwr_act, SOC_act]
 
@@ -290,5 +306,3 @@ def run(SOC_init, N, SOC_grid, ess_pwr_opt, p_bus_list):
 
 plt.plot(Pb_07)
 plt.show()
-
-'''
