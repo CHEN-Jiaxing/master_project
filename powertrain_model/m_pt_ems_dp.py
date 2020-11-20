@@ -288,6 +288,16 @@ for i in range(N-2, -1, -1):
         ess_pwr_opt[j][i] = ess_pwr_grid[k]
         fc_pwr_grid_pre = fc_pwr_grid
 
+def ess_pwr_act_cal(SOC_act_i, SOC_grid, ess_pwr_opt):
+    for i in range(len(SOC_grid)):
+        if(SOC_act_i>SOC_grid[i]):
+            continue
+        else:
+            break
+
+    ess_pwr_act = (SOC_act_i-SOC_grid[i-1]) * (ess_pwr_opt[i]-ess_pwr_opt[i-1])/ (SOC_grid[i]-SOC_grid[i-1])+ess_pwr_opt[i-1]
+    return ess_pwr_act
+
 def run(SOC_init, N, SOC_grid, ess_pwr_opt, p_bus_list):
     SOC_act = np.zeros(N)
     SOC_act[0] = SOC_init
@@ -296,13 +306,13 @@ def run(SOC_init, N, SOC_grid, ess_pwr_opt, p_bus_list):
     samp_time = 1
     C_bat = 37.0 * 3600.0
     for i in range(N-1):
-        ess_pwr_act[i] = np.interp(SOC_act[i], SOC_grid, ess_pwr_opt[:,i])
+        ess_pwr_act[i] = ess_pwr_act_cal(SOC_act[i], SOC_grid, ess_pwr_opt[:,i])
         fc_pwr_act[i] = p_bus_list[i] - ess_pwr_act[i]
-        SOC_act[i+1] = SOC_act[i] - ((samp_time * ess_pwr_act[i])/(C_bat * VOC_cal(SOC_grid[j])))
+        SOC_act[i+1] = SOC_act[i] - ((samp_time * ess_pwr_act[i])/(C_bat * VOC_cal(SOC_grid[i])))
     
     return [ess_pwr_act, fc_pwr_act, SOC_act]
 
-[Pb_07, Pe_07, SOC_07]= run(0.7,N,SOC_grid,ess_pwr_opt,p_bus_list)
+[ess_pwr_act_07, fc_pwr_act_07, SOC_07]= run(0.7,N,SOC_grid,ess_pwr_opt,p_bus_list)
 
-plt.plot(Pb_07)
+plt.plot(SOC_07)
 plt.show()
