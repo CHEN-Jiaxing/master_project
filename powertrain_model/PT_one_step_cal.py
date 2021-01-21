@@ -39,7 +39,7 @@ ess_soc_map = np.array([0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1])
 
 # * about fuel cell
 fuel_storage = 4000.0
-
+# ! 最低and 最高是单堆还是双堆
 fc_pwr_low = 3.19e3
 fc_pwr_high = 25.82e3
 
@@ -65,7 +65,7 @@ em_spd_map=np.array([ 0,104.7,209.4,314.2,418.9,523.6,628.3,733.0,837.8,942.5,10
 
 
 # * gear ratio calc
-
+# ! 不需要
 def i_g_calc(veh_velc):
         if(veh_velc > 50.0/3.6):
             return 1.0
