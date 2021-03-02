@@ -90,7 +90,7 @@ def dst_idx_veh_nr_calc(dangqian_shike, veh_nr):
     return [dst, idx_tbf, veh_tbf_nr]
 
 # !!!输入想要的当前车编号
-veh_cur_nr = 3
+veh_cur_nr = 6
 # !!!输入想要的当前车编号
 zuhe_input_neur = []
 
@@ -130,9 +130,13 @@ for i in range(len(zuhe_input_neur)):
     if j%2 == 0:
         x1 = 900.0 - x1
     zuhe_input_neur[i] = [t, x1, v1, a1, v2, a2, v3, a3,y1]
+
 # print(zuhe_input_neur)
 zuhe_input_neur = np.array(zuhe_input_neur)
 plt.plot(zuhe_input_neur[:,0],zuhe_input_neur[:,2],'r')
 plt.plot(zuhe_input_neur[:,0],zuhe_input_neur[:,4],'b')
 plt.plot(zuhe_input_neur[:,0],zuhe_input_neur[:,6],'g')
 plt.show()
+
+np.save('input', zuhe_input_neur)
+print("===end===")
