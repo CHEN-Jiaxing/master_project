@@ -4,45 +4,30 @@ from keras.models import Sequential
 from keras.layers import LSTM, TimeDistributed, Dense
 from keras.optimizers import Adam
 
-# BATCH_START = 0
-TIME_STEPS = 20
-BATCH_SIZE = 10
-INPUT_SIZE = 3
-OUTPUT_SIZE = 1
+data = np.load('input.npy')
+
+BATCH_START = 0
+TIME_STEPS = 2
+BATCH_SIZE = 6
+INPUT_SIZE = 5
+OUTPUT_SIZE = 2
 CELL_SIZE = 20
 LR = 0.006
 
-x1 = np.arange(10,2010).reshape(2000,1)
-x2 = np.arange(5,2005).reshape(2000,1)
-x3 = np.arange(16,2016).reshape(2000,1)
-y = x1 + x2 + x3
-
-x = np.concatenate((x1,x2,x3),axis = 1).flatten()
-y = y.flatten()
-index = 0
+# 数据长度取整
+BATCH_NUM = int(len(data / BATCH_SIZE))
+data = data[0:BATCH_NUM * BATCH_SIZE]
 
 def batch():
-    global x, y, index
-    X_batch = x[index*20*3: index*20*3 + 10*20*3].reshape(10,20,3)
-    Y_batch = y[index*20*1: index*20*1 + 10*20*1].reshape(10,20,1)
-    index += 2
-    index %= 20
-    
-    return [X_batch, Y_batch]
-
-'''
-def get_batch():
     global BATCH_START, TIME_STEPS
-    # xs shape (50batch, 20steps)
-    xs = np.arange(BATCH_START, BATCH_START+TIME_STEPS*BATCH_SIZE).reshape((BATCH_SIZE, TIME_STEPS)) / (100*np.pi)
-    seq = np.sin(xs)
-    res = np.cos(xs)
+    X_batch = data[BATCH_START: BATCH_START + BATCH_SIZE * TIME_STEPS, 1:6]
+    X_batch = X_batch.reshape(BATCH_SIZE, TIME_STEPS,5)
+    Y_batch = data[BATCH_START: BATCH_START + BATCH_SIZE * TIME_STEPS, 6:8]
+    print(Y_batch)
+    print(Y_batch.shape)
+    Y_batch = Y_batch.reshape(BATCH_SIZE, TIME_STEPS,2)
     BATCH_START += TIME_STEPS
-    # plt.plot(xs[0, :], res[0, :], 'r', xs[0, :], seq[0, :], 'b--')
-    # plt.show()
-    return [seq[:, :, np.newaxis], res[:, :, np.newaxis], xs]
-'''
-
+    return [X_batch, Y_batch]
 
 model = Sequential()
 # build a LSTM RNN
@@ -58,10 +43,10 @@ adam = Adam(LR)
 model.compile(optimizer=adam,
               loss='mse',)
 
+
 print('Training ------------')
-for step in range(5001):
+for step in range(BATCH_NUM):
     # data shape = (batch_num, steps, inputs/outputs)
-    # X_batch, Y_batch, xs = get_batch()
     X_batch, Y_batch = batch()
     cost = model.train_on_batch(X_batch, Y_batch)
     pred = model.predict(X_batch, BATCH_SIZE)
